@@ -102,7 +102,7 @@ const state = {
 const appRoot = document.querySelector<HTMLDivElement>("#app");
 
 if (!appRoot) {
-  throw new Error("App root not found");
+  throw new Error("未找到应用根节点");
 }
 
 const app = appRoot;
@@ -151,7 +151,7 @@ function currentModuleSummary(): ModuleSummary | undefined {
 }
 
 function selectedPoolCourseSummary(course: CoursePoolItem): string {
-  const parts = [course.credits === null ? "No credits set" : `${formatCredits(course.credits)} credits`];
+  const parts = [course.credits === null ? "未设置学分" : `${formatCredits(course.credits)} 学分`];
 
   if (course.note) {
     parts.push(escapeHtml(course.note));
@@ -161,11 +161,11 @@ function selectedPoolCourseSummary(course: CoursePoolItem): string {
 }
 
 function selectedPlanName(): string {
-  return state.plans.find((plan) => plan.id === state.selectedPlanId)?.name ?? "No plan selected";
+  return state.plans.find((plan) => plan.id === state.selectedPlanId)?.name ?? "未选择培养方案";
 }
 
 function selectedModuleName(): string {
-  return modulesForSelectedPlan().find((module) => module.id === state.selectedModuleId)?.name ?? "No module selected";
+  return modulesForSelectedPlan().find((module) => module.id === state.selectedModuleId)?.name ?? "未选择模块";
 }
 
 function render(): void {
@@ -200,7 +200,7 @@ function renderModuleTree(parentModuleId: string | null, depth = 0): string {
                     type="button"
                     class="module-toggle"
                     data-module-toggle="${module.id}"
-                    aria-label="${collapsed ? "Expand child modules" : "Collapse child modules"}"
+                    aria-label="${collapsed ? "展开子模块" : "收起子模块"}"
                   >
                     ${collapsed ? "+" : "-"}
                   </button>
@@ -214,16 +214,16 @@ function renderModuleTree(parentModuleId: string | null, depth = 0): string {
             >
               <span class="module-name">${escapeHtml(module.name)}</span>
               <span class="module-meta">
-                ${summary?.course_count ?? 0} courses / ${formatCredits(summary?.total_credits ?? 0)} credits
+                ${summary?.course_count ?? 0} 门课程 / ${formatCredits(summary?.total_credits ?? 0)} 学分
               </span>
             </button>
             <button
               type="button"
               class="module-finished-toggle ${module.finished ? "is-finished" : ""}"
               data-module-finished="${module.id}"
-              aria-label="${module.finished ? "Mark module unfinished" : "Mark module finished"}"
+              aria-label="${module.finished ? "标记为未完成" : "标记为已完成"}"
             >
-              ${module.finished ? "Done" : "Todo"}
+              ${module.finished ? "完成" : "待完成"}
             </button>
           </div>
           ${collapsed ? "" : renderModuleTree(module.id, depth + 1)}
@@ -237,34 +237,34 @@ function renderPlanHome(): void {
   app.innerHTML = `
     <div class="plan-shell">
       <section class="hero card">
-        <p class="eyebrow">Plans</p>
-        <h1>Plan Management</h1>
-        <p class="hero-copy">Create a plan first, then enter a plan to create modules. Courses are maintained separately in the course pool.</p>
+        <p class="eyebrow">培养方案</p>
+        <h1>培养方案管理</h1>
+        <p class="hero-copy">先创建培养方案，再进入方案创建模块。课程统一在课程池中维护。</p>
         <form id="plan-form" class="hero-form">
           <label>
-            <span>Plan Name</span>
+            <span>培养方案名称</span>
             <input
               name="name"
               type="text"
-              placeholder="e.g. 2024 Computer Science"
+              placeholder="例如：2024级计算机科学与技术"
               maxlength="48"
               required
             />
           </label>
-          <button type="submit">Create Plan</button>
+          <button type="submit">创建培养方案</button>
         </form>
       </section>
 
       <section class="card quick-entry-card">
         <div class="panel-header">
           <div>
-            <p class="eyebrow">Course Pool</p>
-            <h2>Global Courses</h2>
+            <p class="eyebrow">课程池</p>
+            <h2>全局课程池</h2>
           </div>
-          <span class="panel-badge">${state.coursePool.length} courses</span>
+          <span class="panel-badge">${state.coursePool.length} 门课程</span>
         </div>
-        <p class="hero-copy">All module course additions come from the shared course pool.</p>
-        <button type="button" class="action-button" id="open-course-pool">Open Course Pool</button>
+        <p class="hero-copy">模块中添加课程时，统一从共享课程池中选择。</p>
+        <button type="button" class="action-button" id="open-course-pool">进入课程池</button>
       </section>
 
       <section class="plan-grid">
@@ -275,17 +275,17 @@ function renderPlanHome(): void {
               <article class="plan-card card" data-plan-open="${plan.id}">
                 <div class="plan-row">
                   <div class="plan-main">
-                    <p class="eyebrow">Plan</p>
+                    <p class="eyebrow">方案</p>
                     <h2>${escapeHtml(plan.name)}</h2>
                   </div>
                   <div class="plan-metrics">
-                    <span>${summary?.module_count ?? 0} modules</span>
-                    <span>${summary?.course_count ?? 0} courses</span>
-                    <strong>${formatCredits(summary?.total_credits ?? 0)} credits</strong>
+                    <span>${summary?.module_count ?? 0} 个模块</span>
+                    <span>${summary?.course_count ?? 0} 门课程</span>
+                    <strong>${formatCredits(summary?.total_credits ?? 0)} 学分</strong>
                   </div>
                   <div class="plan-actions">
-                    <button type="button" class="secondary-button" data-plan-rename="${plan.id}">Rename</button>
-                    <button type="button" class="danger-button" data-plan-delete="${plan.id}">Delete</button>
+                    <button type="button" class="secondary-button" data-plan-rename="${plan.id}">重命名</button>
+                    <button type="button" class="danger-button" data-plan-delete="${plan.id}">删除</button>
                   </div>
                 </div>
               </article>
@@ -296,7 +296,7 @@ function renderPlanHome(): void {
           state.plans.length === 0
             ? `
               <article class="card empty-panel">
-                <p>No plans yet. Create a plan to start managing modules and courses.</p>
+                <p>还没有培养方案，先创建一个方案再开始管理模块和课程。</p>
               </article>
             `
             : ""
@@ -314,43 +314,43 @@ function renderCoursePoolPage(): void {
       <section class="card pool-panel">
         <div class="panel-header">
           <div>
-            <p class="eyebrow">Course Pool</p>
-            <h1>Global Courses</h1>
+            <p class="eyebrow">课程池</p>
+            <h1>全局课程池</h1>
           </div>
-          <button type="button" class="ghost-button" id="back-to-home">Back to Home</button>
+          <button type="button" class="ghost-button" id="back-to-home">返回首页</button>
         </div>
 
         <form id="course-pool-form" class="course-form">
           <label class="field-wide">
-            <span>Course Name</span>
+            <span>课程名称</span>
             <input
               name="name"
               type="text"
-              placeholder="e.g. Calculus"
+              placeholder="例如：高等数学"
               maxlength="64"
               required
             />
           </label>
           <label>
-            <span>Credits, Optional</span>
+            <span>学分，可选</span>
             <input
               name="credits"
               type="number"
               min="0"
               step="0.5"
-              placeholder="e.g. 3"
+              placeholder="例如：3"
             />
           </label>
           <label class="field-wide">
-            <span>Note</span>
+            <span>备注</span>
             <textarea
               name="note"
               rows="3"
-              placeholder="Optional"
+              placeholder="可选"
               maxlength="120"
             ></textarea>
           </label>
-          <button type="submit">Add To Course Pool</button>
+          <button type="submit">加入课程池</button>
         </form>
 
         <div class="course-list">
@@ -358,7 +358,7 @@ function renderCoursePoolPage(): void {
             state.coursePool.length === 0
               ? `
                 <div class="empty-state">
-                  <p>No courses in the pool yet.</p>
+                  <p>课程池里还没有课程。</p>
                 </div>
               `
               : state.coursePool
@@ -375,7 +375,7 @@ function renderCoursePoolPage(): void {
                             class="danger-button"
                             data-course-pool-delete="${course.id}"
                           >
-                            Delete
+                            删除
                           </button>
                         </div>
                       </article>
@@ -403,24 +403,24 @@ function renderPlanWorkspace(): void {
       <aside class="sidebar card">
         <div class="panel-header">
           <div>
-            <p class="eyebrow">Modules</p>
+            <p class="eyebrow">模块</p>
             <h1>${escapeHtml(selectedPlanName())}</h1>
           </div>
-          <button type="button" class="ghost-button" id="back-to-plans">Back to Plans</button>
+          <button type="button" class="ghost-button" id="back-to-plans">返回培养方案</button>
         </div>
 
         <form id="module-form" class="stack">
           <label>
-            <span>New Top-Level Module</span>
+            <span>新建顶层模块</span>
             <input
               name="name"
               type="text"
-              placeholder="e.g. Core Courses"
+              placeholder="例如：专业核心课"
               maxlength="32"
               required
             />
           </label>
-          <button type="submit">Add Module</button>
+          <button type="submit">添加模块</button>
         </form>
 
         <div class="module-list">
@@ -431,26 +431,26 @@ function renderPlanWorkspace(): void {
       <main class="content">
         <section class="stats-grid">
           <article class="card stat-card">
-            <p class="eyebrow">Plan Credits</p>
+            <p class="eyebrow">方案学分</p>
             <strong>${formatCredits(state.summary.total_credits)}</strong>
-            <span>Total credits in this plan</span>
+            <span>当前方案总学分</span>
           </article>
           <article class="card stat-card">
-            <p class="eyebrow">Plan Courses</p>
+            <p class="eyebrow">方案课程</p>
             <strong>${state.summary.total_courses}</strong>
-            <span>Total courses in this plan</span>
+            <span>当前方案课程总数</span>
           </article>
           <article class="card stat-card accent">
-            <p class="eyebrow">Current Module</p>
+            <p class="eyebrow">当前模块</p>
             <strong>${formatCredits(selectedModuleSummary?.total_credits ?? 0)}</strong>
-            <span>${escapeHtml(selectedModuleName())} | ${selectedPlanSummary?.course_count ?? 0} courses</span>
+            <span>${escapeHtml(selectedModuleName())} | ${selectedPlanSummary?.course_count ?? 0} 门课程</span>
           </article>
         </section>
 
         <section class="card content-panel">
           <div class="panel-header">
             <div>
-              <p class="eyebrow">Courses</p>
+              <p class="eyebrow">课程</p>
               <h2>${escapeHtml(selectedModuleName())}</h2>
             </div>
             <div class="panel-toolbar">
@@ -460,7 +460,7 @@ function renderPlanWorkspace(): void {
                 id="delete-current-module"
                 ${state.selectedModuleId ? "" : "disabled"}
               >
-                Delete Module
+                删除模块
               </button>
               <button
                 type="button"
@@ -468,7 +468,7 @@ function renderPlanWorkspace(): void {
                 id="toggle-child-module-form"
                 ${state.selectedModuleId ? "" : "disabled"}
               >
-                ${state.isChildModuleFormOpen ? "Hide Child Module Form" : "Add Child Module"}
+                ${state.isChildModuleFormOpen ? "收起子模块表单" : "添加子模块"}
               </button>
               <button
                 type="button"
@@ -476,10 +476,10 @@ function renderPlanWorkspace(): void {
                 id="toggle-course-form"
                 ${state.selectedModuleId ? "" : "disabled"}
               >
-                ${state.isCourseFormOpen ? "Hide Course Option" : "Add Course"}
+                ${state.isCourseFormOpen ? "收起选课项" : "添加课程"}
               </button>
               <span class="panel-badge">
-                ${selectedModuleSummary?.course_count ?? 0} courses
+                ${selectedModuleSummary?.course_count ?? 0} 门课程
               </span>
             </div>
           </div>
@@ -489,16 +489,16 @@ function renderPlanWorkspace(): void {
               ? `
                 <form id="child-module-form" class="inline-form">
                   <label>
-                    <span>Child Module Name</span>
+                    <span>子模块名称</span>
                     <input
                       name="name"
                       type="text"
-                      placeholder="e.g. Math Foundation"
+                      placeholder="例如：数学基础"
                       maxlength="32"
                       ${state.selectedModuleId ? "required" : "disabled"}
                     />
                   </label>
-                  <button type="submit" ${state.selectedModuleId ? "" : "disabled"}>Save Child Module</button>
+                  <button type="submit" ${state.selectedModuleId ? "" : "disabled"}>保存子模块</button>
                 </form>
               `
               : ""
@@ -509,7 +509,7 @@ function renderPlanWorkspace(): void {
               ? `
                 <form id="course-form" class="course-form">
                   <label class="field-wide">
-                    <span>Course From Pool</span>
+                    <span>从课程池选择课程</span>
                     <select name="coursePoolId" ${hasModule && state.coursePool.length > 0 ? "" : "disabled"}>
                       ${state.coursePool
                         .map(
@@ -523,7 +523,7 @@ function renderPlanWorkspace(): void {
                     </select>
                   </label>
                   <label>
-                    <span>Module</span>
+                    <span>模块</span>
                     <select name="moduleId" ${hasModule ? "" : "disabled"}>
                       ${visibleModules
                         .map(
@@ -536,7 +536,7 @@ function renderPlanWorkspace(): void {
                         .join("")}
                     </select>
                   </label>
-                  <button type="submit" ${hasModule && state.coursePool.length > 0 ? "" : "disabled"}>Add Selected Course</button>
+                  <button type="submit" ${hasModule && state.coursePool.length > 0 ? "" : "disabled"}>添加所选课程</button>
                 </form>
               `
               : ""
@@ -547,7 +547,7 @@ function renderPlanWorkspace(): void {
               selectedCourses.length === 0
                 ? `
                   <div class="empty-state">
-                    <p>${hasModule ? "No courses in this module yet." : "Create a module in this plan before adding courses."}</p>
+                    <p>${hasModule ? "这个模块里还没有课程。" : "请先在该培养方案中创建模块，再添加课程。"}</p>
                   </div>
                 `
                 : selectedCourses
@@ -557,19 +557,19 @@ function renderPlanWorkspace(): void {
                           <div>
                             <h3>${escapeHtml(course.name)}</h3>
                             <p>
-                              ${course.note ? escapeHtml(course.note) : "No note"}
+                              ${course.note ? escapeHtml(course.note) : "无备注"}
                             </p>
                           </div>
                           <div class="course-actions">
                             <span class="credits-pill">
-                              ${course.credits === null ? "No credits set" : `${formatCredits(course.credits)} credits`}
+                              ${course.credits === null ? "未设置学分" : `${formatCredits(course.credits)} 学分`}
                             </span>
                             <button
                               type="button"
                               class="danger-button"
                               data-course-id="${course.id}"
                             >
-                              Delete
+                              删除
                             </button>
                           </div>
                         </article>
@@ -748,7 +748,7 @@ function bindEvents(): void {
       }
 
       const currentName = state.plans.find((plan) => plan.id === planId)?.name ?? "";
-      const nextName = window.prompt("Enter a new plan name", currentName)?.trim();
+      const nextName = window.prompt("请输入新的培养方案名称", currentName)?.trim();
       if (!nextName || nextName === currentName) {
         return;
       }
@@ -771,7 +771,7 @@ function bindEvents(): void {
         return;
       }
 
-      const confirmed = window.confirm(`Delete plan "${plan.name}"? Only empty plans can be deleted.`);
+      const confirmed = window.confirm(`确定删除培养方案“${plan.name}”吗？只有空方案才能删除。`);
       if (!confirmed) {
         return;
       }
@@ -873,8 +873,8 @@ function bindEvents(): void {
 }
 
 async function deleteModuleById(moduleId: string): Promise<void> {
-  const moduleName = state.modules.find((module) => module.id === moduleId)?.name ?? "this module";
-  const confirmed = window.confirm(`Delete module "${moduleName}"? Only empty modules can be deleted.`);
+  const moduleName = state.modules.find((module) => module.id === moduleId)?.name ?? "该模块";
+  const confirmed = window.confirm(`确定删除模块“${moduleName}”吗？只有空模块才能删除。`);
   if (!confirmed) {
     return;
   }
@@ -928,7 +928,7 @@ async function refresh(): Promise<void> {
 refresh().catch((error) => {
   app.innerHTML = `
     <div class="fatal-error">
-      <h1>App failed to load</h1>
+      <h1>应用加载失败</h1>
       <p>${escapeHtml(String(error))}</p>
     </div>
   `;
