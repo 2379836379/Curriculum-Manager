@@ -1,0 +1,11 @@
+/target
+/node_modules
+/dist
+/src-tauri/target
+/src-tauri/gen
+/src-tauri/.tauri
+
+.npm-cache
+*.log
+Thumbs.db
+.DS_Store
