@@ -734,6 +734,12 @@ function bindEvents(): void {
         return;
       }
 
+      const courseName = state.coursePool.find((course) => course.id === coursePoolId)?.name ?? "该课程";
+      const confirmed = window.confirm(`确定从课程池删除课程“${courseName}”吗？`);
+      if (!confirmed) {
+        return;
+      }
+
       await invoke("delete_course_pool_item", { id: coursePoolId });
       await refresh();
     });
@@ -830,6 +836,12 @@ function bindEvents(): void {
     element.addEventListener("click", async () => {
       const courseId = element.dataset.courseId;
       if (!courseId) {
+        return;
+      }
+
+      const courseName = state.courses.find((course) => course.id === courseId)?.name ?? "该课程";
+      const confirmed = window.confirm(`确定删除课程“${courseName}”吗？`);
+      if (!confirmed) {
         return;
       }
 
