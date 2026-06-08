@@ -5,7 +5,7 @@ description = "Desktop credit tracker built with Tauri"
 edition = "2024"
 
 [lib]
-name = "course_check_app"
+name = "course_check_core"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

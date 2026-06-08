@@ -40,16 +40,32 @@ fn summary_for(data: &AppData, selected_plan_id: Option<&str>) -> AppSummary {
 }
 
 fn app_state(handle: &AppHandle) -> Result<AppState, String> {
-    let app_dir = handle
+    let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    let project_dir = manifest_dir
+        .parent()
+        .ok_or_else(|| "failed to resolve project root directory".to_string())?
+        .to_path_buf();
+    let data_dir = project_dir.join("data");
+
+    std::fs::create_dir_all(&data_dir)
+        .map_err(|error| format!("failed to create data directory: {error}"))?;
+
+    let path = data_dir.join("course-check-data.json");
+
+    let legacy_app_dir = handle
         .path()
         .app_data_dir()
         .map_err(|error| format!("failed to resolve app data directory: {error}"))?;
+    let legacy_path = legacy_app_dir.join("course-check-data.json");
 
-    std::fs::create_dir_all(&app_dir)
-        .map_err(|error| format!("failed to create app data directory: {error}"))?;
+    let data = if path.exists() {
+        storage::load(&path)?
+    } else if legacy_path.exists() {
+        storage::load(&legacy_path)?
+    } else {
+        AppData::default()
+    };
 
-    let path = app_dir.join("course-check-data.json");
-    let data = storage::load(&path)?;
     storage::save(&path, &data)?;
 
     Ok(AppState {
