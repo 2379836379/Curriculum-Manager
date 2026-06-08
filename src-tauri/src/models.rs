@@ -30,9 +30,16 @@ pub struct Course {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CoursePoolItem {
     pub id: String,
+    pub group_id: String,
     pub name: String,
     pub credits: Option<f32>,
     pub note: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CoursePoolGroup {
+    pub id: String,
+    pub name: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -43,6 +50,8 @@ pub struct AppData {
     pub modules: Vec<Module>,
     #[serde(default)]
     pub courses: Vec<Course>,
+    #[serde(default)]
+    pub course_pool_groups: Vec<CoursePoolGroup>,
     #[serde(default)]
     pub course_pool: Vec<CoursePoolItem>,
 }
@@ -73,6 +82,24 @@ impl AppData {
             for module in &mut self.modules {
                 if module.plan_id.is_empty() {
                     module.plan_id = fallback_plan_id.clone();
+                }
+            }
+        }
+
+        if !self.course_pool.is_empty() && self.course_pool_groups.is_empty() {
+            let fallback_group_id = "semester-migrated".to_string();
+            self.course_pool_groups.push(CoursePoolGroup {
+                id: fallback_group_id.clone(),
+                name: "未分组".to_string(),
+            });
+
+            for course in &mut self.course_pool {
+                course.group_id = fallback_group_id.clone();
+            }
+        } else if let Some(first_group_id) = self.course_pool_groups.first().map(|group| group.id.clone()) {
+            for course in &mut self.course_pool {
+                if course.group_id.is_empty() {
+                    course.group_id = first_group_id.clone();
                 }
             }
         }
@@ -199,9 +226,15 @@ pub struct CoursePayload {
 
 #[derive(Debug, Deserialize)]
 pub struct CoursePoolPayload {
+    pub group_id: String,
     pub name: String,
     pub credits: Option<f32>,
     pub note: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct CoursePoolGroupPayload {
+    pub name: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -215,6 +248,7 @@ pub struct Snapshot {
     pub plans: Vec<Plan>,
     pub modules: Vec<Module>,
     pub courses: Vec<Course>,
+    pub course_pool_groups: Vec<CoursePoolGroup>,
     pub course_pool: Vec<CoursePoolItem>,
     pub summary: AppSummary,
 }

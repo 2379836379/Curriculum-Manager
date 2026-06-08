@@ -5,8 +5,9 @@ use std::path::PathBuf;
 use std::sync::Mutex;
 
 use models::{
-    AddCourseFromPoolPayload, AppData, AppSummary, Course, CoursePayload, CoursePoolItem,
-    CoursePoolPayload, CreateModulePayload, Module, Plan, Snapshot,
+    AddCourseFromPoolPayload, AppData, AppSummary, Course, CoursePayload, CoursePoolGroup,
+    CoursePoolGroupPayload, CoursePoolItem, CoursePoolPayload, CreateModulePayload, Module, Plan,
+    Snapshot,
 };
 use tauri::{AppHandle, Manager, State};
 
@@ -88,6 +89,7 @@ fn get_snapshot(
         plans: data.plans.clone(),
         modules: data.modules.clone(),
         courses: data.courses.clone(),
+        course_pool_groups: data.course_pool_groups.clone(),
         course_pool: data.course_pool.clone(),
         summary: summary_for(&data, selected_plan_id.as_deref()),
     })
@@ -290,6 +292,80 @@ fn create_course(payload: CoursePayload, state: State<'_, AppState>) -> Result<C
 }
 
 #[tauri::command]
+fn create_course_pool_group(
+    payload: CoursePoolGroupPayload,
+    state: State<'_, AppState>,
+) -> Result<CoursePoolGroup, String> {
+    let name = payload.name.trim();
+    if name.is_empty() {
+        return Err("semester name cannot be empty".to_string());
+    }
+
+    let group = {
+        let mut data = state
+            .data
+            .lock()
+            .map_err(|_| "state lock poisoned".to_string())?;
+
+        if data
+            .course_pool_groups
+            .iter()
+            .any(|group| group.name.trim().eq_ignore_ascii_case(name))
+        {
+            return Err("semester already exists".to_string());
+        }
+
+        let group = CoursePoolGroup {
+            id: make_id("semester"),
+            name: name.to_string(),
+        };
+        data.course_pool_groups.push(group.clone());
+        group
+    };
+
+    state.save()?;
+    Ok(group)
+}
+
+#[tauri::command]
+fn delete_course_pool_group(id: String, state: State<'_, AppState>) -> Result<(), String> {
+    {
+        let mut data = state
+            .data
+            .lock()
+            .map_err(|_| "state lock poisoned".to_string())?;
+
+        let group = data
+            .course_pool_groups
+            .iter()
+            .find(|group| group.id == id)
+            .cloned()
+            .ok_or_else(|| "semester group not found".to_string())?;
+
+        let removed_course_names = data
+            .course_pool
+            .iter()
+            .filter(|course| course.group_id == id)
+            .map(|course| course.name.clone())
+            .collect::<Vec<_>>();
+
+        data.course_pool_groups.retain(|item| item.id != id);
+        data.course_pool.retain(|course| course.group_id != id);
+        data.courses
+            .retain(|course| !removed_course_names.iter().any(|name| name == &course.name));
+
+        if data.course_pool_groups.is_empty() && !data.course_pool.is_empty() {
+            return Err(format!(
+                "failed to delete semester group {}",
+                group.name
+            ));
+        }
+    }
+
+    state.save()
+}
+
+#[tauri::command]
 fn create_course_pool_item(
     payload: CoursePoolPayload,
     state: State<'_, AppState>,
@@ -310,6 +386,14 @@ fn create_course_pool_item(
             .lock()
             .map_err(|_| "state lock poisoned".to_string())?;
 
+        if !data
+            .course_pool_groups
+            .iter()
+            .any(|group| group.id == payload.group_id)
+        {
+            return Err("semester group not found".to_string());
+        }
+
         if data
             .course_pool
             .iter()
@@ -320,6 +404,7 @@ fn create_course_pool_item(
 
         let course_pool_item = CoursePoolItem {
             id: make_id("pool-course"),
+            group_id: payload.group_id,
             name: name.to_string(),
             credits: payload.credits,
             note: payload.note.filter(|value| !value.trim().is_empty()),
@@ -376,11 +461,19 @@ fn delete_course_pool_item(id: String, state: State<'_, AppState>) -> Result<(),
             .data
             .lock()
             .map_err(|_| "state lock poisoned".to_string())?;
-        let before = data.course_pool.len();
-        data.course_pool.retain(|course| course.id != id);
-        if before == data.course_pool.len() {
+
+        let removed_course = data
+            .course_pool
+            .iter()
+            .find(|course| course.id == id)
+            .cloned();
+
+        let Some(removed_course) = removed_course else {
             return Err("course pool item not found".to_string());
-        }
+        };
+
+        data.course_pool.retain(|course| course.id != id);
+        data.courses.retain(|course| course.name != removed_course.name);
     }
 
     state.save()
@@ -419,6 +512,8 @@ pub fn run() {
             delete_module,
             toggle_module_finished,
             create_course,
+            create_course_pool_group,
+            delete_course_pool_group,
             create_course_pool_item,
             create_course_from_pool,
             delete_course_pool_item,

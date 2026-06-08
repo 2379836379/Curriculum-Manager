@@ -50,6 +50,7 @@ pub fn load(path: &Path) -> Result<AppData, String> {
                     })
                     .collect(),
                 courses: legacy.courses,
+                course_pool_groups: Vec::new(),
                 course_pool: Vec::new(),
             }
             .normalize())

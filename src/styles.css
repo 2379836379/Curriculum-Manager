@@ -386,6 +386,24 @@ label {
   color: rgba(255, 255, 255, 0.76);
 }
 
+.stat-card.assigned-stat {
+  background: linear-gradient(135deg, #e8f7e8, #f3fcf4);
+  border-color: #b7dfbe;
+}
+
+.stat-card.assigned-stat strong {
+  color: #1f5b2d;
+}
+
+.stat-card.unassigned-stat {
+  background: linear-gradient(135deg, #fff4dd, #fffaf0);
+  border-color: #ecd39a;
+}
+
+.stat-card.unassigned-stat strong {
+  color: #9a6700;
+}
+
 .content-panel {
   display: grid;
   gap: 1.15rem;
@@ -394,6 +412,48 @@ label {
 .pool-panel {
   display: grid;
   gap: 1.15rem;
+}
+
+.semester-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1rem;
+}
+
+.semester-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+.semester-entry {
+  padding: 1.3rem;
+  cursor: pointer;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(247, 250, 255, 0.96));
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.semester-entry:hover {
+  transform: translateY(-1px);
+  border-color: #9fc0e6;
+  box-shadow: 0 20px 55px rgba(23, 32, 51, 0.12);
+}
+
+.semester-card {
+  display: grid;
+  gap: 1rem;
+  padding: 1.2rem;
+}
+
+.semester-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
 .panel-badge {
@@ -433,6 +493,42 @@ label {
   padding: 1rem 1.05rem;
   border-radius: 18px;
   background: #f8fafc;
+}
+
+.pool-course-item.is-assigned {
+  background: linear-gradient(135deg, #eef9ef, #f8fdf8);
+  border: 1px solid #c5e5ca;
+}
+
+.pool-course-item.is-unassigned {
+  background: linear-gradient(135deg, #fff8ea, #fffdf7);
+  border: 1px solid #f0dfb5;
+}
+
+.pool-course-header {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+
+.pool-status {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.28rem 0.65rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.pool-status.assigned {
+  background: #dff4e1;
+  color: #1f5b2d;
+}
+
+.pool-status.unassigned {
+  background: #fff1cc;
+  color: #9a6700;
 }
 
 .course-item p {
