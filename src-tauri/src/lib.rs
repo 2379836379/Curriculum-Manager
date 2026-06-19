@@ -40,13 +40,27 @@ fn summary_for(data: &AppData, selected_plan_id: Option<&str>) -> AppSummary {
     AppSummary::from_data(data, selected_plan_id)
 }
 
-fn app_state(handle: &AppHandle) -> Result<AppState, String> {
-    let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let project_dir = manifest_dir
+fn resolve_data_dir(_handle: &AppHandle) -> Result<PathBuf, String> {
+    if cfg!(debug_assertions) {
+        let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        let project_dir = manifest_dir
+            .parent()
+            .ok_or_else(|| "failed to resolve project root directory".to_string())?
+            .to_path_buf();
+        return Ok(project_dir.join("data"));
+    }
+
+    let exe_path =
+        std::env::current_exe().map_err(|error| format!("failed to resolve executable path: {error}"))?;
+    let exe_dir = exe_path
         .parent()
-        .ok_or_else(|| "failed to resolve project root directory".to_string())?
-        .to_path_buf();
-    let data_dir = project_dir.join("data");
+        .ok_or_else(|| "failed to resolve executable directory".to_string())?;
+
+    Ok(exe_dir.join("data"))
+}
+
+fn app_state(handle: &AppHandle) -> Result<AppState, String> {
+    let data_dir = resolve_data_dir(handle)?;
 
     std::fs::create_dir_all(&data_dir)
         .map_err(|error| format!("failed to create data directory: {error}"))?;
