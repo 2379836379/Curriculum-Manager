@@ -90,7 +90,7 @@ impl AppData {
             let fallback_group_id = "semester-migrated".to_string();
             self.course_pool_groups.push(CoursePoolGroup {
                 id: fallback_group_id.clone(),
-                name: "未分组".to_string(),
+                name: "Ungrouped".to_string(),
             });
 
             for course in &mut self.course_pool {
